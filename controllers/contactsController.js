@@ -6,6 +6,7 @@ const {
   addContact,
   updateContactById,
   updateStatusContact,
+  listContactsWithFavorite,
 } = require('../models/db-service/contacts');
 
 const schema = Joi.object({
@@ -24,8 +25,18 @@ const getAllContactsController = async (req, res, next) => {
   try {
     // берется из authMiddleware
     const { _id: userId } = req.user;
-    const contacts = await listContacts(userId);
-    res.json(contacts);
+    let { skip = 0, limit = 20, favorite } = req.query;
+    // что мы отдавали не больше 20, если пользователь попросит 500
+    // для page можно просто прибавлять к limit к skip столько раз сколько указно в page
+    limit = limit > 20 ? 20 : limit;
+    let contacts;
+    if (favorite) {
+      contacts = await listContactsWithFavorite(userId, { skip, limit, favorite });
+    } else {
+      contacts = await listContacts(userId, { skip, limit });
+    }
+
+    res.json(contacts, skip, limit);
   } catch (error) {
     return res.status(400).json({ message: error.message });
   }

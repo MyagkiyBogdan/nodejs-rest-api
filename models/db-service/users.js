@@ -48,10 +48,20 @@ const logoutUser = async userId => {
   }
 };
 
+const updateSubscription = async (userId, subscriptionType) => {
+  try {
+    await Users.findOneAndUpdate({ _id: userId }, { subscription: subscriptionType });
+    return Users.findOne({ _id: userId });
+  } catch (err) {
+    throw new Error(err.message);
+  }
+};
+
 module.exports = {
   getUserById,
   registerUser,
   loginUser,
   getUserIdByEmail,
   logoutUser,
+  updateSubscription,
 };

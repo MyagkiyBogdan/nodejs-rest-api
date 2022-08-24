@@ -2,11 +2,12 @@ const Joi = require('joi');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const {
-  // getUserById,
+  getUserById,
   registerUser,
   loginUser,
   getUserIdByEmail,
   logoutUser,
+  updateSubscription,
 } = require('../models/db-service/users');
 
 const schema = Joi.object({
@@ -73,14 +74,54 @@ const logoutController = async (req, res, next) => {
 
     await logoutUser(userId);
     res.status(204).json();
-  } catch (error) {}
+  } catch (error) {
+    return res.status(401).json({ message: 'Not authorized' });
+  }
 };
 
-const currentController = async (req, res, next) => {};
+const currentController = async (req, res, next) => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ message: 'Not authorized' });
+    }
+    const { _id: userId } = req.user;
+    const user = await getUserById(userId);
+    res.json({
+      email: user.email,
+      subscription: user.subscription,
+    });
+  } catch (error) {
+    return res.status(401).json({ message: 'Not authorized' });
+  }
+};
+
+const subscriptionController = async (req, res, next) => {
+  try {
+    const { _id: userId } = req.user;
+    const subscriptionType = req.body.subscription;
+    if (
+      subscriptionType === 'starter' ||
+      subscriptionType === 'pro' ||
+      subscriptionType === 'business'
+    ) {
+      const user = await updateSubscription(userId, subscriptionType);
+
+      res.json({
+        message: 'subscription was successfully update',
+        subscription: user.subscription,
+      });
+    } else {
+      return res.status(400).json({ message: 'Subscription type is wrong!' });
+    }
+  } catch (error) {
+    return res.status(401).json({ message: 'Not authorized' });
+  }
+};
 
 module.exports = {
   loginController,
   signupController,
   logoutController,
   currentController,
+  subscriptionController,
 };

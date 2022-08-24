@@ -1,8 +1,22 @@
 const Contacts = require('../contactsSchema');
 
-const listContacts = async userId => {
+const listContacts = async (userId, { skip, limit }) => {
   try {
-    return Contacts.find({ owner: userId });
+    // '-__v' - убирает в ответе служное mongoose поле __v. Если указать __v - будет включено только это поле.
+    // return Contacts.find({ owner: userId }, '-__v');
+    // Так же можно сделать это через select 0 - не показывать, 1 показывать только поля с 1
+    return Contacts.find({ owner: userId }).select({ __v: 0 }).skip(skip).limit(limit);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+const listContactsWithFavorite = async (userId, { skip, limit, favorite }) => {
+  try {
+    // '-__v' - убирает в ответе служное mongoose поле __v. Если указать __v - будет включено только это поле.
+    // return Contacts.find({ owner: userId }, '-__v');
+    // Так же можно сделать это через select 0 - не показывать, 1 показывать только поля с 1
+    return Contacts.find({ owner: userId, favorite }).select({ __v: 0 }).skip(skip).limit(limit);
   } catch (error) {
     console.log(error);
   }
@@ -63,4 +77,5 @@ module.exports = {
   addContact,
   updateContactById,
   updateStatusContact,
+  listContactsWithFavorite,
 };
