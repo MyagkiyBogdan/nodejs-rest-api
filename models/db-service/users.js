@@ -1,6 +1,7 @@
-const Users = require('../authSchema');
+const Users = require('../userSchema');
 const bcrypt = require('bcrypt');
 const gravatar = require('gravatar');
+const { v4: uuidv4 } = require('uuid');
 
 const getUserById = async userId => {
   try {
@@ -15,13 +16,19 @@ const registerUser = async ({ email, password, subscription = 'starter' }) => {
   try {
     // 10 - salt - количество рангов хеширования, не забыть await перед bcrypt.hash
     const userAvatar = gravatar.url(email);
-    return Users.create({
+    const newUser = await Users.create({
       email,
       password: await bcrypt.hash(password, 10),
       subscription,
       avatarURL: userAvatar,
+      // данные для верефикации юзера, меняются в isUserVerificated
+      verificationToken: uuidv4(),
+      verify: false,
     });
+
+    return newUser;
   } catch (err) {
+    console.log('here');
     throw new Error(err.message);
   }
 };
@@ -37,10 +44,18 @@ const getUserIdByEmail = async ({ email }) => {
   }
 };
 
+const isUserVerificated = async userId => {
+  const isUserVerificated = await Users.findOne({ _id: userId, verify: true });
+  if (!isUserVerificated) {
+    return null;
+  }
+  return true;
+};
+
 const loginUser = async (userId, token) => {
   try {
     await Users.findOneAndUpdate({ _id: userId }, { token });
-    return Users.findOne({ _id: userId });
+    return await Users.findOne({ _id: userId });
   } catch (err) {
     throw new Error(err.message);
   }
@@ -49,7 +64,7 @@ const loginUser = async (userId, token) => {
 const logoutUser = async userId => {
   try {
     await Users.findOneAndUpdate({ _id: userId }, { token: null });
-    return Users.findOne({ _id: userId });
+    return await Users.findOne({ _id: userId });
   } catch (err) {
     throw new Error(err.message);
   }
@@ -58,7 +73,7 @@ const logoutUser = async userId => {
 const updateSubscription = async (userId, subscriptionType) => {
   try {
     await Users.findOneAndUpdate({ _id: userId }, { subscription: subscriptionType });
-    return Users.findOne({ _id: userId });
+    return await Users.findOne({ _id: userId });
   } catch (err) {
     throw new Error(err.message);
   }
@@ -67,7 +82,18 @@ const updateSubscription = async (userId, subscriptionType) => {
 const updateAvatar = async (userId, avatarURL) => {
   try {
     await Users.findOneAndUpdate({ _id: userId }, { avatarURL });
-    return Users.findOne({ _id: userId });
+    return await Users.findOne({ _id: userId });
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+const verifyUser = async verificationToken => {
+  try {
+    return await Users.findOneAndUpdate(
+      { verificationToken: verificationToken },
+      { verify: true, verificationToken: null }
+    );
   } catch (error) {
     throw new Error(error.message);
   }
@@ -81,4 +107,6 @@ module.exports = {
   logoutUser,
   updateSubscription,
   updateAvatar,
+  isUserVerificated,
+  verifyUser,
 };
