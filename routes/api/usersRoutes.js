@@ -10,6 +10,8 @@ const {
   currentController,
   subscriptionController,
   updateAvatarController,
+  verificationController,
+  sendRepeatedVerificationEmailController,
 } = require('../../controllers/usersController');
 const authMiddleware = require('../../middlewares/authMiddleware');
 
@@ -35,6 +37,8 @@ const uploadMiddleware = multer({ storage });
 
 router.post('/signup', signupController);
 router.post('/login', loginController);
+router.get('/verify/:verificationToken', verificationController);
+router.post('/verify', sendRepeatedVerificationEmailController);
 router.use(authMiddleware);
 router.get('/logout', logoutController);
 router.get('/current', currentController);

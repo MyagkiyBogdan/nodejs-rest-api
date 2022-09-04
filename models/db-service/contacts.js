@@ -5,7 +5,7 @@ const listContacts = async (userId, { skip, limit }) => {
     // '-__v' - убирает в ответе служное mongoose поле __v. Если указать __v - будет включено только это поле.
     // return Contacts.find({ owner: userId }, '-__v');
     // Так же можно сделать это через select 0 - не показывать, 1 показывать только поля с 1
-    return Contacts.find({ owner: userId }).select({ __v: 0 }).skip(skip).limit(limit);
+    return await Contacts.find({ owner: userId }).select({ __v: 0 }).skip(skip).limit(limit);
   } catch (error) {
     console.log(error);
   }
@@ -13,10 +13,13 @@ const listContacts = async (userId, { skip, limit }) => {
 
 const listContactsWithFavorite = async (userId, { skip, limit, favorite }) => {
   try {
-    // '-__v' - убирает в ответе служное mongoose поле __v. Если указать __v - будет включено только это поле.
+    // '-__v' - убирает в ответе служное mongoose пол е __v. Если указать __v - будет включено только это поле.
     // return Contacts.find({ owner: userId }, '-__v');
     // Так же можно сделать это через select 0 - не показывать, 1 показывать только поля с 1
-    return Contacts.find({ owner: userId, favorite }).select({ __v: 0 }).skip(skip).limit(limit);
+    return await Contacts.find({ owner: userId, favorite })
+      .select({ __v: 0 })
+      .skip(skip)
+      .limit(limit);
   } catch (error) {
     console.log(error);
   }
@@ -24,7 +27,7 @@ const listContactsWithFavorite = async (userId, { skip, limit, favorite }) => {
 
 const getContactById = async (contactId, userId) => {
   try {
-    return Contacts.findOne({ _id: contactId, userId });
+    return await Contacts.findOne({ _id: contactId, userId });
   } catch (error) {
     console.log(error);
   }
@@ -32,7 +35,7 @@ const getContactById = async (contactId, userId) => {
 
 const removeContact = async (contactId, userId) => {
   try {
-    return Contacts.findByIdAndRemove({ _id: contactId, userId });
+    return await Contacts.findByIdAndRemove({ _id: contactId, userId });
   } catch (err) {
     throw new Error(err.message);
   }
@@ -40,7 +43,7 @@ const removeContact = async (contactId, userId) => {
 
 const addContact = async ({ name, email, phone, favorite = false }, userId) => {
   try {
-    return Contacts.create({ name, email, phone, favorite, owner: userId });
+    return await Contacts.create({ name, email, phone, favorite, owner: userId });
   } catch (err) {
     throw new Error(err.message);
   }
@@ -48,7 +51,7 @@ const addContact = async ({ name, email, phone, favorite = false }, userId) => {
 
 const updateContactById = async (contactId, { name, email, phone }, userId) => {
   try {
-    return Contacts.findByIdAndUpdate(
+    return await Contacts.findByIdAndUpdate(
       { _id: contactId, userId },
       { $set: { _id: contactId, name, email, phone } }
     );
@@ -59,7 +62,7 @@ const updateContactById = async (contactId, { name, email, phone }, userId) => {
 
 const updateStatusContact = async (contactId, { favorite }, userId) => {
   try {
-    return Contacts.findByIdAndUpdate(
+    return await Contacts.findByIdAndUpdate(
       { _id: contactId, userId },
       {
         $set: { _id: contactId, favorite },
